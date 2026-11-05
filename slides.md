@@ -194,7 +194,7 @@ Como PC-A aún no conoce la MAC del DNS_Server, `THA` se envía en cero.
 
 ---
 
-## ARP Request completo
+## ARP Request completo (de PC-A consultando por MAC de DNS_Server)
 
 <EncapsulationTable :stage="6" />
 
@@ -203,38 +203,6 @@ La IP buscada es la del DNS_Server: `172.20.10.14`.
 
 ---
 
-# Dominios de broadcast y de colisión
-
-En la topología, cada red local conectada a un router es un dominio de broadcast distinto: Red A (`172.20.10.0/25`), Red B (`172.20.10.128/26`) y Red C (`172.20.10.192/26`). El router no reenvía el broadcast ARP de una red a las otras.
-
-- En Red A, el request de PC-A llega por el switch a DNS_Server y a las demás interfaces de esa LAN.
-- En Red C, un request de PC-C para encontrar el gateway llega a los puertos del switch de Red C, no a Red A.
-- En un switch, cada puerto constituye su propio dominio de colisión; con enlaces full-duplex no se producen colisiones.
-- Los routers separan dominios de broadcast; los switches los extienden dentro de la misma LAN/VLAN.
-
-
----
-
-# 1. ARP Request de PC-A a DNS_Server
-
-PC-A (`172.20.10.12`) pregunta quién tiene la IP del DNS_Server (`172.20.10.14`). Ambos están en Red A (`172.20.10.0/25`), así que la consulta se resuelve en esa LAN. En la cabecera Ethernet, la **MAC destino es broadcast**; dentro de ARP, `TPA` contiene la IP buscada.
-
-| Campo ARP | Valor del request |
-| --- | --- |
-| `HTYPE` | `0x0001` (Ethernet) |
-| `PTYPE` | `0x0800` (IPv4) |
-| `HLEN` | `6` (bytes por MAC) |
-| `PLEN` | `4` (bytes por IPv4) |
-| `OPER` | `0x0001` (request) |
-| MAC origen (`SHA`) | `MAC_PC-A_eth0` (no indicada en la imagen) |
-| IP origen (`SPA`) | `172.20.10.12` (PC-A) |
-| MAC destino (`THA`) | `00:00:00:00:00:00` (desconocida) |
-| IP destino (`TPA`) | `172.20.10.14` (DNS_Server) |
-
-**Clave:** `FF:FF:FF:FF:FF:FF` es la MAC destino Ethernet (broadcast); `THA` queda en cero porque PC-A aún no conoce la MAC del servidor. ARP incluye las IP de origen y objetivo en `SPA` y `TPA`; no va encapsulado dentro de un paquete IP. **Pregunta:** «¿Quién tiene `172.20.10.14`? Responde a `172.20.10.12`».
-
-
----
 
 # ¿Qué ocurre con el request?
 
@@ -245,16 +213,30 @@ PC-A (`172.20.10.12`) pregunta quién tiene la IP del DNS_Server (`172.20.10.14`
 </div>
 <div v-click>
 
-2. Como la MAC destino es broadcast, el switch la distribuye por los puertos de esa LAN/VLAN, excepto el de entrada.
+2. Como la MAC destino es broadcast, el switch la distribuye por todos los puertos de esa LAN, excepto el de entrada.
 
 </div>
 <div v-click>
 
-3. Los equipos reciben la solicitud; DNS_Server (`172.20.10.14`) es quien debe responder.
+3. Todos los hosts dentro del dominio de broadcast reciben la solicitud; DNS_Server (`172.20.10.14`) es quien debe responder.
 
 </div>
 
 El request no atraviesa un router: ARP resuelve direcciones en el enlace local.
+
+
+---
+
+# Dominios de broadcast y de colisión
+
+En la topología, cada red local conectada a un router es un dominio de broadcast distinto: Red A (`172.20.10.0/25`), Red B (`172.20.10.128/26`) y Red C (`172.20.10.192/26`). El router no reenvía el broadcast ARP de una red a las otras.
+
+- En Red A, el request ARP de **PC-A** llega por el switch a **DNS_Server** y a las demás interfaces de esa LAN.
+- En Red C, un request ARP de **PC-C** para conocer la MAC del **gateway** llega a los puertos del switch de Red C, no a Red A.
+- En un switch, cada puerto constituye su propio dominio de colisión, es decir, dividen dominios de colisión.
+- Los routers separan dominios de broadcast; los switches los extienden dentro de la misma LAN.
+- Los hubs (o repetidores) extienden los dominios de colisión.
+
 
 
 ---
@@ -351,16 +333,15 @@ PC-A ── trama a MAC del DNS ─> DNS_Server
 
 ---
 
-# ¿Y si el destino está en otra red?
+# ¿Y si el destino está en otra red? PC-A quiere llegar a PC-C
 
-PC-A compara la IP destino con su propia subred. En el esquema, PC-A (`172.20.10.12`) está en Red A y PC-C (`172.20.10.198`) en Red C.
+PC-A (`172.20.10.12`, Red A) quiere enviar un paquete a PC-C (`172.20.10.198`, Red C), que está en otra subred.
 
-- **Destino en la misma subred:** resuelve por ARP la MAC del equipo destino.
-- **Destino en otra subred:** PC-C no busca por ARP la MAC de PC-A; busca la MAC del gateway conectado a Red C, Router2 `eth2`.
+- **PC-A** resuelve por ARP la MAC de su gateway: Router1 `eth0`. El request ARP (broadcast) queda dentro de Red A; el router **no** lo reenvía a Red C.
+- Los routers encaminan el paquete **IP** hacia **Red C**; su destino sigue siendo `172.20.10.198`, aunque la trama Ethernet se construye de nuevo en cada enlace.
+- En Red C, **Router2** consulta por ARP la MAC de **PC-C**. PC-C responde con su MAC y Router2 le envía el paquete.
 
-La trama Ethernet llega a Router2; el paquete IP conserva como destino `172.20.10.12` (PC-A). El router crea otra trama para el siguiente enlace. La IP/MAC de Router2 `eth2` y la MAC de PC-C no están especificadas en la imagen.
-
-**ARP no busca la MAC de un equipo remoto a través de Internet.**
+**ARP resuelve la MAC del siguiente salto local, no la del equipo remoto.**
 
 
 ---
@@ -369,8 +350,8 @@ La trama Ethernet llega a Router2; el paquete IP conserva como destino `172.20.1
 
 - Las direcciones IP identifican destinos lógicos; las MAC entregan tramas en el enlace local.
 - ARP asocia una IPv4 local con una dirección MAC.
-- **Request:** PC-A busca por broadcast a `172.20.10.14` en Red A; PC-C busca por broadcast la MAC de su gateway en Red C.
-- **Reply:** DNS_Server o Router2 responde con su MAC en un mensaje normalmente unicast.
-- La relación se guarda en caché; para destinos remotos, se resuelve la MAC del gateway, no la del host remoto.
+- **Destino en la misma red (PC-A → DNS_Server):** PC-A busca por broadcast la MAC de `172.20.10.14` en Red A; DNS_Server responde con su MAC.
+- **Destino en otra red (PC-A → PC-C):** PC-A busca por ARP la MAC de su gateway, Router1 `eth0`, no la de PC-C. En Red C, Router2 busca por ARP la MAC de PC-C, y PC-C responde.
+- Cada equipo guarda en caché las asociaciones aprendidas. La IP destino para el paquete IP sigue siendo la de PC-C, pero la MAC destino de la trama corresponde al siguiente salto de cada enlace.
 
 
