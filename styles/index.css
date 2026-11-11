@@ -1,0 +1,23 @@
+.slidev-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background-image: url('../images/edge-network.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.slidev-page::before {
+  content: 'Redes y comunicaciones - Facultad de Informática - UNLP';
+  position: absolute;
+  top: 0.55rem;
+  right: 1rem;
+  z-index: 20;
+  color: #64748b;
+  font-size: 0.62em;
+  font-weight: 500;
+  pointer-events: none;
+}
