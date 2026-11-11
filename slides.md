@@ -2,7 +2,7 @@
 theme: neversink
 title: "Capa de enlace: direcciones MAC y ARP"
 info: Qué hace ARP y cómo se intercambian un request y un reply en una red.
-transition: slide-left
+transition: fade
 highlighter: shiki
 highlighterTheme: github-dark
 ---
