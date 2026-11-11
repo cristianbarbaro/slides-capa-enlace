@@ -131,6 +131,8 @@ docker0          DOWN           3a:91:c4:2d:7f:b8 <NO-CARRIER,BROADCAST,MULTICAS
 
 # Cómo viaja ARP en Ethernet
 
+<br>
+
 ```text
 TRAMA ETHERNET
 ┌────────────── Cabecera Ethernet (14 bytes) ──────────────────┐┌── Mensaje ARP (28 bytes) ───┐
@@ -257,6 +259,8 @@ La IP buscada es la del DNS_Server: `172.20.10.14`.
 
 # ¿Qué ocurre con el request?
 
+<br>
+
 <div v-click>
 
 1. El switch recibe la trama y aprende qué MAC está detrás del puerto de PC A.
@@ -374,6 +378,8 @@ En un ARP Reply, el equipo que posee la IP consultada informa su MAC al emisor, 
 
 # Después del reply
 
+<br>
+
 <div v-click>
 
 1. PC-A guarda temporalmente la relación `172.20.10.14 → MAC_DNS_eth0` en su caché ARP.
@@ -428,6 +434,8 @@ PC-A (`172.20.10.12`, Red A) quiere enviar un paquete a PC-C (`172.20.10.198`, R
 ---
 
 # Resumen
+
+<br>
 
 <div v-click>
 
