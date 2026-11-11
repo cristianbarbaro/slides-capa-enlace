@@ -89,3 +89,16 @@ function cellStyle(step?: number) {
     </tbody>
   </table>
 </template>
+
+<style scoped>
+.encapsulation-table,
+.encapsulation-table :deep(table) {
+  line-height: 1.4;
+}
+
+.encapsulation-table :deep(th),
+.encapsulation-table :deep(td) {
+  padding-top: 0.55em;
+  padding-bottom: 0.55em;
+}
+</style>
