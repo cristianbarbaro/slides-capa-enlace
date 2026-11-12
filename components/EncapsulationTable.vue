@@ -58,16 +58,16 @@ function cellStyle(step?: number) {
       <col style="width: 54%;">
     </colgroup>
     <thead>
-      <tr><th colspan="3"><b>Trama Ethernet</b></th></tr>
+      <tr class="ethernet-row"><th colspan="3"><b>Trama Ethernet</b></th></tr>
     </thead>
     <tbody>
-      <tr v-for="field in ethernetFields" :key="field.label">
+      <tr v-for="field in ethernetFields" :key="field.label" class="ethernet-row">
         <th>{{ field.label }}</th>
         <td colspan="2" :style="cellStyle(field.step)">
           <code>{{ isComplete(field.step) ? field.value : '???' }}</code>
         </td>
       </tr>
-      <tr>
+      <tr class="arp-row">
         <th><b>Mensaje ARP encapsulado</b></th>
         <td colspan="2">
           <table style="width: 100%; table-layout: fixed;">
@@ -76,7 +76,7 @@ function cellStyle(step?: number) {
               <col style="width: 52%;">
             </colgroup>
             <tbody>
-              <tr v-for="field in arpFields" :key="field.label">
+              <tr v-for="field in arpFields" :key="field.label" class="arp-row">
                 <th>{{ field.label }}</th>
                 <td :style="cellStyle(field.step)">
                   <code>{{ isComplete(field.step) ? field.value : '???' }}</code>
@@ -100,5 +100,13 @@ function cellStyle(step?: number) {
 .encapsulation-table :deep(td) {
   padding-top: 0.55em;
   padding-bottom: 0.55em;
+}
+
+.encapsulation-table :deep(.ethernet-row) {
+  background-color: #cfe4f7;
+}
+
+.encapsulation-table :deep(.arp-row) {
+  background-color: #d3ebd0;
 }
 </style>
